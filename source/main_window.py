@@ -4,7 +4,7 @@ import ffmpeg
 from tkinter import filedialog
 from tkVideoPlayer import TkinterVideo
 
-
+#TODO: Get video information using opencv2
 def open_video():
     vid_player.stop()
     global video_file
@@ -65,45 +65,46 @@ def video_ended(event):
     play_pause_btn.configure(text="Play ►")
     progress_slider.set(-1)
 
+#TODO: Encapsulate 'App' in a class 
+if __name__ == "__main__":
+    customtkinter.set_appearance_mode("System")
+    customtkinter.set_default_color_theme("green")
 
-customtkinter.set_appearance_mode("System")
-customtkinter.set_default_color_theme("green")
+    app = customtkinter.CTk()
+    app.geometry("600x500")
+    app.title("CustomTkinter x TkVideoPlayer.py")
 
-app = customtkinter.CTk()
-app.geometry("600x500")
-app.title("CustomTkinter x TkVideoPlayer.py")
+    video_file = ""
+    frame_1 = customtkinter.CTkFrame(master=app, corner_radius=15)
+    frame_1.pack(pady=20, padx=20, fill="both", expand=True)
 
-video_file = ""
-frame_1 = customtkinter.CTkFrame(master=app, corner_radius=15)
-frame_1.pack(pady=20, padx=20, fill="both", expand=True)
+    button_1 = customtkinter.CTkButton(
+        master=frame_1, text="Open Video", corner_radius=8, command=open_video
+    )
+    button_1.pack(pady=10, padx=10)
 
-button_1 = customtkinter.CTkButton(
-    master=frame_1, text="Open Video", corner_radius=8, command=open_video
-)
-button_1.pack(pady=10, padx=10)
+    vid_player = TkinterVideo(
+        master=frame_1,
+        scaled=True,
+        keep_aspect=True,
+        consistant_frame_rate=True,
+        bg="black",
+    )
+    vid_player.set_resampling_method(1)
+    vid_player.pack(expand=True, fill="both", padx=10, pady=10)
+    vid_player.bind("<<Duration>>", update_duration)
+    vid_player.bind("<<SecondChanged>>", update_scale)
+    vid_player.bind("<<Ended>>", video_ended)
 
-vid_player = TkinterVideo(
-    master=frame_1,
-    scaled=True,
-    keep_aspect=True,
-    consistant_frame_rate=True,
-    bg="black",
-)
-vid_player.set_resampling_method(1)
-vid_player.pack(expand=True, fill="both", padx=10, pady=10)
-vid_player.bind("<<Duration>>", update_duration)
-vid_player.bind("<<SecondChanged>>", update_scale)
-vid_player.bind("<<Ended>>", video_ended)
+    progress_slider = customtkinter.CTkSlider(
+        master=frame_1, from_=-1, to=1, number_of_steps=1, command=seek
+    )
+    progress_slider.set(-1)
+    progress_slider.pack(fill="both", padx=10, pady=10)
 
-progress_slider = customtkinter.CTkSlider(
-    master=frame_1, from_=-1, to=1, number_of_steps=1, command=seek
-)
-progress_slider.set(-1)
-progress_slider.pack(fill="both", padx=10, pady=10)
+    play_pause_btn = customtkinter.CTkButton(
+        master=frame_1, text="Play ►", command=play_pause
+    )
+    play_pause_btn.pack(pady=10)
 
-play_pause_btn = customtkinter.CTkButton(
-    master=frame_1, text="Play ►", command=play_pause
-)
-play_pause_btn.pack(pady=10)
-
-app.mainloop()
+    app.mainloop()

@@ -4,7 +4,7 @@ import ffmpeg
 from tkinter import filedialog
 from tkVideoPlayer import TkinterVideo
 
-#TODO: Get video information using opencv2
+#TODO: #1 Get video information using opencv2
 def open_video():
     vid_player.stop()
     global video_file
@@ -65,14 +65,14 @@ def video_ended(event):
     play_pause_btn.configure(text="Play ►")
     progress_slider.set(-1)
 
-#TODO: Encapsulate 'App' in a class 
+#TODO: #2 Encapsulate 'App' in a class 
 if __name__ == "__main__":
     customtkinter.set_appearance_mode("System")
     customtkinter.set_default_color_theme("green")
 
     app = customtkinter.CTk()
     app.geometry("600x500")
-    app.title("CustomTkinter x TkVideoPlayer.py")
+    app.title("Multimedia-VectorView")
 
     video_file = ""
     frame_1 = customtkinter.CTkFrame(master=app, corner_radius=15)

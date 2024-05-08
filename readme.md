@@ -8,7 +8,8 @@ A simple python project that calculates and visualizes any kind of video's motio
 
 In no particular order:
 
-- [ ] Repository initialization
+- [x] Repository initialization
+- [x] Open video from file system
 - [ ] UI
 - [ ] EBMA implementation
 - [ ] MV on-top visualization

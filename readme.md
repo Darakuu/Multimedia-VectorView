@@ -13,8 +13,8 @@ In no particular order:
 - [ ] UI
 - [ ] EBMA implementation
 - [ ] MV on-top visualization
-- [ ] Bounding box drawing
-- [ ] Motion tracking
+- [x] Bounding box drawing
+- [ ] BB-Based Motion tracking
 - [ ] EBMA alternatives
 
 Extra:

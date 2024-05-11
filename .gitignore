@@ -6,3 +6,4 @@ image_examples2.py
 video_open_test.py
 mainwindow.py
 .idea
+__pycache__

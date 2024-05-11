@@ -27,5 +27,5 @@ Extra:
 Subject to change.
 
 0. Python version used: `3.12.x`
-1. Create a .venv virtual environment and install the requirements using pip, with the constraints: `pip install -r .\requirements.txt -c .\constraints.txt`
+1. Create a .venv virtual environment and install the requirements using pip, with the constraints: `pip install -r .\requirements.txt`
 2. Run `source/main_window.py` and you're  good to go!

@@ -16,6 +16,7 @@ In no particular order:
 - [x] Bounding box drawing
 - [ ] BB-Based Motion tracking
 - [ ] EBMA alternatives
+- [ ] Documentation
 
 Extra:
 

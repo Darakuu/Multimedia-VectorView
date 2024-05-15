@@ -1,35 +1,51 @@
 ﻿import numpy as np
 
 
-def ebma_search(imgP, imgI, blockSize=16, p=7):
-    """
+"""
     Exhaustive Block Matching Algorithm
 
     Input:
-    - imgP (np.array): The current frame
-    - imgI (np.array): The reference frame
-    - blockSize (int): The size of the block
-    - p (int): The search parameter
+    - current_frame (np.array): The current frame
+    - reference_frame (np.array): The reference frame
+    - block_size (int): The size of the block
+    - search_param (int): The search parameter
 
     Returns:
     - np.array: The motion vectors
     """
-    height, width = imgP.shape
-    motion_vectors = np.zeros((height // blockSize, width // blockSize, 2), dtype=np.int)
 
-    for m in range(blockSize // 2, height - blockSize // 2 + 1, blockSize):
-        for n in range(blockSize // 2, width - blockSize // 2 + 1, blockSize):
-            dist_min = float('inf')
-            for k in range(max(blockSize // 2 - p, 0), min(height - blockSize // 2 + 1, blockSize // 2 + p + 1)):
-                for l in range(max(blockSize // 2 - p, 0), min(width - blockSize // 2 + 1, blockSize // 2 + p + 1)):
-                    dist = np.sum((imgP[m - blockSize // 2:m + blockSize // 2,
-                                   n - blockSize // 2:n + blockSize // 2] - imgI[k - blockSize // 2:k + blockSize // 2,
-                                                                            l - blockSize // 2:l + blockSize // 2]) ** 2)
-                    if dist < dist_min:
-                        dist_min = dist
-                        dy = k - m
-                        dx = l - n
-            motion_vectors[m // blockSize, n // blockSize, 0] = dy
-            motion_vectors[m // blockSize, n // blockSize, 1] = dx
+
+def ebma_search(current_frame, reference_frame, block_size=16, search_param=7):
+    height, width = current_frame.shape
+    num_blocks_y = height // block_size
+    num_blocks_x = width // block_size
+    motion_vectors = np.zeros((num_blocks_y, num_blocks_x, 2), dtype=int)
+
+    for block_y in range(num_blocks_y):
+        for block_x in range(num_blocks_x):
+            min_dist = float('inf')
+            best_offset_y, best_offset_x = 0, 0
+
+            # Block position in current_frame
+            start_y = block_y * block_size
+            start_x = block_x * block_size
+            block_current = current_frame[start_y:start_y + block_size, start_x:start_x + block_size]
+
+            # Search window
+            for offset_y in range(-search_param, search_param + 1):
+                for offset_x in range(-search_param, search_param + 1):
+                    ref_y = start_y + offset_y
+                    ref_x = start_x + offset_x
+
+                    if (0 <= ref_y < height - block_size + 1) and (0 <= ref_x < width - block_size + 1):
+                        block_reference = reference_frame[ref_y:ref_y + block_size, ref_x:ref_x + block_size]
+                        dist = np.sum((block_current - block_reference) ** 2)
+
+                        if dist < min_dist:
+                            min_dist = dist
+                            best_offset_y = offset_y
+                            best_offset_x = offset_x
+
+            motion_vectors[block_y, block_x] = [best_offset_y, best_offset_x]
 
     return motion_vectors

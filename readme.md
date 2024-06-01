@@ -23,6 +23,7 @@ Extra:
 - [ ] Anti-Jitter filter
 - [ ] FAST
 - [ ] File restructure
+- [ ] Improve code readability / better openCV2 usage
 
 
 ## Instructions

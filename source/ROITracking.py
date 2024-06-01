@@ -1,89 +1,75 @@
 ﻿import cv2
-from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtWidgets import QLabel, QApplication
-import utils.utils_video as vutils
+import numpy as np
+from PyQt5.QtCore import QThread, pyqtSignal
 
-# Global variables to store the coordinates of the bounding box
-point1 = None
-point2 = None
+class TrackingProcessor(QThread):
+    frame_ready = pyqtSignal(np.ndarray)
+    progress_update = pyqtSignal(int)
 
-def mouse_events(event, x, y, flags, param):
-    global point1, point2, frame, is_drawing
-    # If the left mouse button is clicked, record the starting coordinates
-    if event == cv2.EVENT_LBUTTONDOWN:
-        point1 = (x, y)
-        is_drawing = True
-    # If the left mouse button is released, record the ending coordinates
-    elif event == cv2.EVENT_LBUTTONUP:
-        # Sort the points to ensure point1 is top left and point2 is bottom right
-        point1, point2 = sorted([(x, y), point1])
-        is_drawing = False
-    # If the mouse is moved while the left button is down, draw the selection area
-    elif event == cv2.EVENT_MOUSEMOVE and is_drawing:
-        temp_frame = frame.copy()
-        cv2.rectangle(temp_frame, point1, (x, y), (255, 191, 0), 2)  # Light blue color
-        cv2.imshow("Tracking Window", temp_frame)
+    def __init__(self, video_path):
+        super().__init__()
+        self.video_path = video_path
+        self.cap = cv2.VideoCapture(video_path)
+        self.tracker = cv2.TrackerMIL_create()
+        self.running = True
+        self.init_bounding_box = None
+        self.orb = cv2.ORB_create()
+        self.total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.processed_frames = 0
 
-def track_roi(video_path):
-    global point1, point2, frame, is_drawing
-    # Open the video file
-    video = vutils.open_video(video_path)
+    def set_bounding_box(self, bbox):
+        self.init_bounding_box = bbox
 
-    # Read the first frame
-    ret, frame = video.read()
-
-    # Create a window and set the mouse callback function
-    cv2.namedWindow("Tracking Window")
-    cv2.setMouseCallback("Tracking Window", mouse_events)
-
-    # Initialize is_drawing
-    is_drawing = False
-
-    # Wait for the user to draw a bounding box
-    while point1 is None or point2 is None:
-        cv2.imshow("Tracking Window", frame)
-        cv2.waitKey(1)
-
-    # Create a CV2 tracker object
-    tracker = cv2.TrackerMIL_create()
-
-    # Initialize tracker with the bounding box drawn by the user, all directions allowed
-    bbox = (point1[0], point1[1], point2[0] - point1[0], point2[1] - point1[1])
-    ret = tracker.init(frame, bbox)
-
-    app = QApplication([])
-    label = QLabel()
-    label.setMinimumSize(640, 480)  # Set a minimum resolution for the window
-
-    while True:
-        # Read a new frame
-        ret, frame = video.read()
+    def run(self):
+        ret, frame = self.cap.read()
         if not ret:
-            break
+            return
 
-        # Update tracker
-        ret, bbox = tracker.update(frame)
+        if self.init_bounding_box is None:
+            return
 
-        # Draw bounding box
-        if ret:
+        self.tracker.init(frame, self.init_bounding_box)
+        self.kp_init, self.des_init = self.orb.detectAndCompute(frame, None)
+
+        while self.running:
+            ret, frame = self.cap.read()
+            if not ret:
+                break
+
+            self.processed_frames += 1
+            progress = int((self.processed_frames / self.total_frames) * 100)
+            self.progress_update.emit(progress)
+
+            ret, bbox = self.tracker.update(frame)
+            if not ret:
+                # Tracker lost the target, try to reinitialize using ORB feature matching
+                kp_frame, des_frame = self.orb.detectAndCompute(frame, None)
+                if des_frame is not None and len(des_frame) >= 2:
+                    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+                    matches = bf.match(self.des_init, des_frame)
+                    matches = sorted(matches, key=lambda x: x.distance)
+                    if len(matches) > 10:
+                        src_pts = np.float32([self.kp_init[m.queryIdx].pt for m in matches[:10]]).reshape(-1, 1, 2)
+                        dst_pts = np.float32([kp_frame[m.trainIdx].pt for m in matches[:10]]).reshape(-1, 1, 2)
+                        M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+                        h, w = frame.shape[:2]
+                        pts = np.float32([[self.init_bounding_box[0], self.init_bounding_box[1]],
+                                          [self.init_bounding_box[0] + self.init_bounding_box[2], self.init_bounding_box[1]],
+                                          [self.init_bounding_box[0] + self.init_bounding_box[2], self.init_bounding_box[1] + self.init_bounding_box[3]],
+                                          [self.init_bounding_box[0], self.init_bounding_box[1] + self.init_bounding_box[3]]]).reshape(-1, 1, 2)
+                        dst = cv2.perspectiveTransform(pts, M)
+                        self.init_bounding_box = cv2.boundingRect(dst)
+                        self.tracker = cv2.TrackerMIL_create()
+                        self.tracker.init(frame, self.init_bounding_box)
+
             p1 = (int(bbox[0]), int(bbox[1]))
             p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
-            cv2.rectangle(frame, p1, p2, (255,0,0), 2, 1)
+            cv2.rectangle(frame, p1, p2, (255, 0, 0), 2, 1)
 
-        # Convert the frame to QImage and display it using PyQt
-        height, width, channel = frame.shape
-        bytesPerLine = 3 * width
-        qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888).rgbSwapped()
-        pixmap = QPixmap.fromImage(qImg)
-        label.setPixmap(pixmap)
-        label.show()
+            # Convert the frame from BGR to RGB for correct color display
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            self.frame_ready.emit(frame)
 
-        # Break the loop if 'esc' is pressed
-        if cv2.waitKey(1) & 0xFF == 27:
-            break
-
-    video.release()
-    cv2.destroyAllWindows()
-    
-if __name__ == '__main__':
-    track_roi('C:/Users/elvio/Downloads/ffmpeg/input2.mp4')
+    def stop(self):
+        self.running = False
+        self.wait()

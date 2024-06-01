@@ -1,21 +1,26 @@
 ﻿import numpy as np
 
 
-"""
-    Exhaustive Block Matching Algorithm
+def ebma_search(current_frame, reference_frame, block_size=16, search_param=7):
+    """
+    Performs the Exhaustive Block Matching Algorithm (EBMA) to find motion vectors between two frames.
 
     Input:
-    - current_frame (np.array): The current frame
-    - reference_frame (np.array): The reference frame
-    - block_size (int): The size of the block
-    - search_param (int): The search parameter
+    - current_frame (np.array): The current frame as a 2D numpy array.
+    - reference_frame (np.array): The reference frame as a 2D numpy array.
+    - block_size (int, optional): The size of the block. Default is 16.
+    - search_param (int, optional): The search parameter. Default is 7.
 
     Returns:
-    - np.array: The motion vectors
+    - np.array: A 3D numpy array containing the motion vectors for each block. The third dimension contains the y and x offsets.
+
+    Raises:
+    - ValueError: If the current_frame and reference_frame do not have the same shape.
     """
 
+    if current_frame.shape != reference_frame.shape:
+        raise ValueError("current_frame and reference_frame must have the same shape.")
 
-def ebma_search(current_frame, reference_frame, block_size=16, search_param=7):
     height, width = current_frame.shape
     num_blocks_y = height // block_size
     num_blocks_x = width // block_size
@@ -30,7 +35,6 @@ def ebma_search(current_frame, reference_frame, block_size=16, search_param=7):
             start_y = block_y * block_size
             start_x = block_x * block_size
             block_current = current_frame[start_y:start_y + block_size, start_x:start_x + block_size]
-
             # Search window
             for offset_y in range(-search_param, search_param + 1):
                 for offset_x in range(-search_param, search_param + 1):

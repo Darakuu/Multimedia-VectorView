@@ -10,17 +10,19 @@ In no particular order:
 
 - [x] Repository initialization
 - [x] Open video from file system
-- [ ] UI
-- [ ] EBMA implementation
-- [ ] MV on-top visualization
+- [x] UI
+- [x] EBMA implementation
+- [x] MV on-top visualization
 - [x] Bounding box drawing
-- [ ] BB-Based Motion tracking
-- [ ] EBMA alternatives
+- [x] BB-Based Motion tracking
+- [x] EBMA alternatives
 - [ ] Documentation
 
 Extra:
 
 - [ ] Anti-Jitter filter
+- [ ] FAST
+- [ ] File restructure
 
 
 ## Instructions

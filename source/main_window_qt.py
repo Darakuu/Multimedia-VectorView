@@ -12,6 +12,7 @@ from source.ebma import ebma_search
 from source.threestepsearch import tss_search
 from ROITracking import TrackingProcessor
 
+
 # Todo: Could be moved to its own file
 class VideoProcessor(QThread):
     # Signals
@@ -27,7 +28,8 @@ class VideoProcessor(QThread):
         self.prev_frame = None  # Previous frame for motion estimation
         self.running = True  # Flag to stop the thread
         self.algorithm = algorithm  # The motion estimation algorithm to use
-        self.total_frames = int(self.videocapture.get(cv2.CAP_PROP_FRAME_COUNT))  # Total Amount of frames in the video, needed for progress
+        self.total_frames = int(
+            self.videocapture.get(cv2.CAP_PROP_FRAME_COUNT))  # Total Amount of frames in the video, needed for progress
 
     def run(self):
         current_frame = 0
@@ -222,10 +224,11 @@ class MotionVectorVisualizer(QMainWindow):
             # Display the first frame to draw bounding box
             self.cap = cv2.VideoCapture(file_path)
             frame_read, frame = self.cap.read()
-            
+
             if frame_read:
                 height, width, _ = frame.shape
-                self.resize(width+(int(width*0.05)), height+(int(height*0.25))) # resize by video's width and height, but also account for external UI elements
+                self.resize(width + (int(width * 0.05)), height + (
+                    int(height * 0.25)))  # resize by video's width and height, but also account for external UI elements
                 self.tracking_video_label.setFixedSize(width, height)
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 self.update_tracking_frame(frame_rgb)
@@ -253,7 +256,8 @@ class MotionVectorVisualizer(QMainWindow):
     def update_tracking_progress(self, current_frame, total_frames):
         self.tracking_progress_bar.setMaximum(total_frames)
         self.tracking_progress_bar.setValue(current_frame)
-        self.tracking_progress_bar.setFormat(f"    Frames Processed: {current_frame} out of {total_frames} Total Frames")
+        self.tracking_progress_bar.setFormat(
+            f"    Frames Processed: {current_frame} out of {total_frames} Total Frames")
 
     def stop_tracking_video(self):
         if self.tracking_processor:
@@ -291,15 +295,16 @@ class MotionVectorVisualizer(QMainWindow):
             video_title = file_path.split("/")[-1]
             self.statusBar().showMessage(f"{video_title} was successfully loaded!")
             self.progress_bar.setValue(0)
-            
+
             cap = cv2.VideoCapture(file_path)
             frame_read, frame = cap.read()
-            
+
             if frame_read:
                 height, width, _ = frame.shape
-                self.resize(width+(int(width*0.33)), height+(int(height*0.25))) # resize by video's width and height, but also account for external UI elements
+                self.resize(width + (int(width * 0.33)), height + (
+                    int(height * 0.25)))  # resize by video's width and height, but also account for external UI elements
                 self.video_label.setFixedSize(width, height)
-            
+
             if self.algorithm:
                 self.set_algorithm(self.algorithm)
 

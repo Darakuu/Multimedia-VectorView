@@ -2,6 +2,7 @@
 import numpy as np
 from PyQt5.QtCore import QThread, pyqtSignal
 
+
 class TrackingProcessor(QThread):
     frame_ready = pyqtSignal(np.ndarray)
     tracking_progress_updated = pyqtSignal(int, int)
@@ -51,22 +52,26 @@ class TrackingProcessor(QThread):
                         # Sort matches by distance
                         matches = sorted(matches, key=lambda x: x.distance)
                         if len(matches) > 10:
-                            src_points = np.float32([self.keypoints_initial[m.queryIdx].pt for m in matches[:10]]).reshape(-1, 1, 2)
-                            dst_points = np.float32([keypoints_frame[m.trainIdx].pt for m in matches[:10]]).reshape(-1, 1, 2)
-                            
+                            src_points = np.float32(
+                                [self.keypoints_initial[m.queryIdx].pt for m in matches[:10]]).reshape(-1, 1, 2)
+                            dst_points = np.float32([keypoints_frame[m.trainIdx].pt for m in matches[:10]]).reshape(-1,
+                                                                                                                    1,
+                                                                                                                    2)
+
                             # Uses: RANdom SAmple Consensus, findHomography from Features2D:
                             # https://docs.opencv.org/4.x/d9/dab/tutorial_homography.html
                             # Find the homography matrix to transform the source points to destination points
                             matrix, mask = cv2.findHomography(src_points, dst_points, cv2.RANSAC, 5.0)
-                            
 
                             # Define the four corners of the initial bounding box
                             bbox_points = np.float32([
-                                [self.initial_bbox[0], self.initial_bbox[1]], # Top-left corner
-                                [self.initial_bbox[0] + self.initial_bbox[2], self.initial_bbox[1]], # Top-right corner
-                                [self.initial_bbox[0] + self.initial_bbox[2], self.initial_bbox[1] + self.initial_bbox[3]], # Bottom-right corner
-                                [self.initial_bbox[0], self.initial_bbox[1] + self.initial_bbox[3]] # Bottom-left corner
-                            ]).reshape(-1, 1, 2) # Reshape to the required format for perspective transform
+                                [self.initial_bbox[0], self.initial_bbox[1]],  # Top-left corner
+                                [self.initial_bbox[0] + self.initial_bbox[2], self.initial_bbox[1]],  # Top-right corner
+                                [self.initial_bbox[0] + self.initial_bbox[2],
+                                 self.initial_bbox[1] + self.initial_bbox[3]],  # Bottom-right corner
+                                [self.initial_bbox[0], self.initial_bbox[1] + self.initial_bbox[3]]
+                                # Bottom-left corner
+                            ]).reshape(-1, 1, 2)  # Reshape to the required format for perspective transform
                             transformed_bbox = cv2.perspectiveTransform(bbox_points, matrix)
                             self.initial_bbox = cv2.boundingRect(transformed_bbox)
                             self.tracker = cv2.TrackerMIL_create()

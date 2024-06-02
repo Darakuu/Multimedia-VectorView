@@ -253,8 +253,9 @@ class MotionVectorVisualizer(QMainWindow):
             block_size = int(self.block_size_input.text())
             search_radius = int(self.search_radius_input.text())
         except ValueError:
-            QMessageBox.warning(self, "Invalid Input", "Please enter valid integer values for block size and search radius.")
-            return
+            QMessageBox.warning(self, "Invalid Input", "Values are automatically being set to default")
+            block_size = 16
+            search_radius = 8
 
         if self.video_processor:
             self.video_processor.stop()

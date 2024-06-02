@@ -1,6 +1,6 @@
 ﻿import numpy as np
 
-def tss_search(current_frame, reference_frame, block_size=16, search_param=7):
+def tss_search(current_frame, reference_frame, block_size=16, search_radius=8):
     """
     Three-Step Search Algorithm
 
@@ -28,7 +28,9 @@ def tss_search(current_frame, reference_frame, block_size=16, search_param=7):
             start_x = block_x * block_size
             block_current = current_frame[start_y:start_y + block_size, start_x:start_x + block_size]
 
-            step_size = search_param
+            step_size = search_radius
+            
+            print(f"Block Size: {block_size}, Search Radius: {search_radius}")
 
             # Perform the search in three steps
             while step_size > 0:

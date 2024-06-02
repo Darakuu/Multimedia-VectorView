@@ -1,6 +1,6 @@
 ﻿import numpy as np
 
-def ebma_search(current_frame, reference_frame, block_size=16, search_radius=7):
+def ebma_search(current_frame, reference_frame, block_size=16, search_radius=8):
     """
     Performs the Exhaustive Block Matching Algorithm (EBMA) to find motion vectors between two frames.
 
@@ -51,6 +51,7 @@ def ebma_search(current_frame, reference_frame, block_size=16, search_radius=7):
                     if 0 <= ref_y < frame_height - block_size + 1 and 0 <= ref_x < frame_width - block_size + 1:
                         reference_block = reference_frame[ref_y:ref_y + block_size, ref_x:ref_x + block_size]
                         distance = np.sum((current_block - reference_block) ** 2)
+                        # ref_y: starting row, ref_x: starting column, block_size: height and width of the block
 
                         # Update the best offset if a smaller distance is found
                         if distance < min_distance:

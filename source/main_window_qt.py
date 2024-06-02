@@ -4,7 +4,7 @@ import numpy as np
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QFileDialog, QLabel,
     QVBoxLayout, QPushButton, QWidget, QHBoxLayout,
-    QGroupBox, QTabWidget, QMessageBox, QProgressBar
+    QGroupBox, QTabWidget, QMessageBox, QProgressBar, QLineEdit, QFormLayout
 )
 from PyQt5.QtGui import QImage, QPixmap, QPainter, QPen
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QRect
@@ -18,11 +18,11 @@ class VideoProcessor(QThread):
     frame_ready = pyqtSignal(np.ndarray)
     progress_updated = pyqtSignal(int, int)
 
-    def __init__(self, video_path, algorithm, block_size=16, search_area=8):
+    def __init__(self, video_path, algorithm, block_size=16, search_radius=8):
         super().__init__()
         self.video_path = video_path  # Path to the video file
         self.block_size = block_size  # Block size for motion estimation algorithms
-        self.search_area = search_area  # Search area for motion estimation algorithms
+        self.search_radius = search_radius  # Search area for motion estimation algorithms
         self.videocapture = cv2.VideoCapture(video_path)  # Open the video file
         self.prev_frame = None  # Previous frame for motion estimation
         self.running = True  # Flag to stop the thread
@@ -58,7 +58,7 @@ class VideoProcessor(QThread):
 
     def calculate_motion_vectors(self, prev_frame, curr_frame):
         try:
-            return self.algorithm(prev_frame, curr_frame, self.block_size)
+            return self.algorithm(prev_frame, curr_frame, self.block_size, self.search_radius)
         except Exception as e:
             print(f"Error in calculating motion vectors: {e}")
             return []
@@ -163,6 +163,16 @@ class MotionVectorVisualizer(QMainWindow):
         # self.fast_button.clicked.connect(lambda: self.set_algorithm(fast_search)) - WIP
         self.algorithm_layout.addWidget(self.fast_button)
 
+        self.block_size_input = QLineEdit()
+        self.search_radius_input = QLineEdit()
+        self.block_size_input.setPlaceholderText("Block Size (default 16)")
+        self.search_radius_input.setPlaceholderText("Search Radius (default 8)")
+
+        form_layout = QFormLayout()
+        form_layout.addRow("Block Size:", self.block_size_input)
+        form_layout.addRow("Search Radius:", self.search_radius_input)
+        self.side_menu_layout.addLayout(form_layout)
+
         self.tracking_tab = QWidget()
         self.tracking_layout = QVBoxLayout(self.tracking_tab)
         self.tabs.addTab(self.tracking_tab, "Tracking")
@@ -239,9 +249,16 @@ class MotionVectorVisualizer(QMainWindow):
             QMessageBox.warning(self, "No Video Loaded", "Please load a video before selecting an algorithm.")
             return
         self.algorithm = algorithm
+        try:
+            block_size = int(self.block_size_input.text())
+            search_radius = int(self.search_radius_input.text())
+        except ValueError:
+            QMessageBox.warning(self, "Invalid Input", "Please enter valid integer values for block size and search radius.")
+            return
+
         if self.video_processor:
             self.video_processor.stop()
-        self.video_processor = VideoProcessor(self.video_path, self.algorithm)
+        self.video_processor = VideoProcessor(self.video_path, self.algorithm, block_size, search_radius)
         self.video_processor.frame_ready.connect(self.update_frame)  # Connect to the frame_ready signal
         self.video_processor.progress_updated.connect(self.update_progress)  # Connect to the progress_updated signal
         self.video_processor.start()
@@ -257,11 +274,7 @@ class MotionVectorVisualizer(QMainWindow):
             self.statusBar().showMessage(f"{video_title} was successfully loaded!")
             self.progress_bar.setValue(0)
             if self.algorithm:
-                if self.video_processor:
-                    self.video_processor.stop()
-                self.video_processor = VideoProcessor(file_path, self.algorithm)
-                self.video_processor.frame_ready.connect(self.update_frame)
-                self.video_processor.start()
+                self.set_algorithm(self.algorithm)
 
     def stop_video(self):
         if self.video_processor:
@@ -323,8 +336,6 @@ class MotionVectorVisualizer(QMainWindow):
         if self.tracking_processor:
             self.tracking_processor.stop()
         super().closeEvent(event)
-
-
 
 
 if __name__ == '__main__':

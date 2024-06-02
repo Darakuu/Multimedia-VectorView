@@ -30,9 +30,12 @@ class VideoProcessor(QThread):
         self.algorithm = algorithm  # The motion estimation algorithm to use
         self.total_frames = int(
             self.videocapture.get(cv2.CAP_PROP_FRAME_COUNT))  # Total Amount of frames in the video, needed for progress
+        self.current_frame_index = 0  # Current frame index for resuming playback
 
     def run(self):
-        current_frame = 0
+        if self.current_frame_index > 0:
+            self.videocapture.set(cv2.CAP_PROP_POS_FRAMES, self.current_frame_index)
+
         while self.running:
             frame_read, frame = self.videocapture.read()
             if not frame_read:
@@ -49,8 +52,8 @@ class VideoProcessor(QThread):
                 self.frame_ready.emit(frame)
 
                 # update progress bar
-                current_frame += 1
-                self.progress_updated.emit(current_frame, self.total_frames)
+                self.current_frame_index += 1
+                self.progress_updated.emit(self.current_frame_index, self.total_frames)
 
             except Exception as e:
                 print(f"Error processing frame: {e}")
@@ -98,7 +101,14 @@ class VideoProcessor(QThread):
         self.running = False
         self.wait()
         if self.videocapture.isOpened():
+            self.current_frame_index = int(self.videocapture.get(cv2.CAP_PROP_POS_FRAMES))
             self.videocapture.release()
+
+    def resume(self):
+        if not self.videocapture.isOpened():
+            self.videocapture = cv2.VideoCapture(self.video_path)
+            self.running = True
+            self.start()
 
 
 class MotionVectorVisualizer(QMainWindow):
@@ -145,6 +155,10 @@ class MotionVectorVisualizer(QMainWindow):
         self.stop_button = QPushButton("Stop Video")
         self.stop_button.clicked.connect(self.stop_video)
         self.video_layout.addWidget(self.stop_button)
+
+        self.resume_button = QPushButton("Resume Video")
+        self.resume_button.clicked.connect(self.resume_video)
+        self.video_layout.addWidget(self.resume_button)
 
         self.progress_bar = QProgressBar()
         self.video_layout.addWidget(self.progress_bar)
@@ -312,6 +326,11 @@ class MotionVectorVisualizer(QMainWindow):
         if self.video_processor:
             self.video_processor.stop()
             self.statusBar().showMessage("Video stopped.")
+
+    def resume_video(self):
+        if self.video_processor:
+            self.video_processor.resume()
+            self.statusBar().showMessage("Video resumed.")
 
     def update_frame(self, frame):
         try:

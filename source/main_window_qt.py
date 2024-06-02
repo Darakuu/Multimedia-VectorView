@@ -4,7 +4,7 @@ import numpy as np
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QFileDialog, QLabel,
     QVBoxLayout, QPushButton, QWidget, QHBoxLayout,
-    QGroupBox, QTabWidget, QMessageBox, QProgressBar, QLineEdit, QFormLayout
+    QGroupBox, QTabWidget, QMessageBox, QProgressBar, QLineEdit, QFormLayout, QScrollArea
 )
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
@@ -67,7 +67,7 @@ class VideoProcessor(QThread):
         """
         Draw motion vectors on the frame.
 
-        Args:
+        Input:
             frame (np.ndarray): The frame on which to draw the motion vectors. It should be a 3-channel image.
             motion_vectors (np.ndarray): A 2D array of motion vectors. Each element is a tuple (dy, dx) representing
                                          the displacement vector for each block.
@@ -127,10 +127,14 @@ class MotionVectorVisualizer(QMainWindow):
         self.tabs.addTab(self.motion_tab, "Motion Estimation")
 
         self.video_layout = QVBoxLayout()
-        self.motion_layout.addLayout(self.video_layout)
+        self.motion_layout.addLayout(self.video_layout, stretch=4)
 
         self.video_label = QLabel()
-        self.video_layout.addWidget(self.video_label)
+        self.video_label.setScaledContents(True)
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setWidget(self.video_label)
+        self.video_layout.addWidget(self.scroll_area)
 
         self.load_button = QPushButton("Load Video")
         self.load_button.clicked.connect(self.load_video)
@@ -144,7 +148,7 @@ class MotionVectorVisualizer(QMainWindow):
         self.video_layout.addWidget(self.progress_bar)
 
         self.side_menu_layout = QVBoxLayout()
-        self.motion_layout.addLayout(self.side_menu_layout)
+        self.motion_layout.addLayout(self.side_menu_layout, stretch=1)
 
         self.algorithm_group_box = QGroupBox("Motion Estimation Algorithms")
         self.algorithm_layout = QVBoxLayout()
@@ -160,13 +164,12 @@ class MotionVectorVisualizer(QMainWindow):
         self.algorithm_layout.addWidget(self.tss_button)
 
         self.fast_button = QPushButton("FAST (WIP)")
-        # self.fast_button.clicked.connect(lambda: self.set_algorithm(fast_search)) - WIP
         self.algorithm_layout.addWidget(self.fast_button)
 
         self.block_size_input = QLineEdit()
         self.search_radius_input = QLineEdit()
-        self.block_size_input.setPlaceholderText("Block Size (default 16)")
-        self.search_radius_input.setPlaceholderText("Search Radius (default 8)")
+        self.block_size_input.setPlaceholderText("Block Size, default: 16")
+        self.search_radius_input.setPlaceholderText("Search Radius, default: 8)")
 
         form_layout = QFormLayout()
         form_layout.addRow("Block Size:", self.block_size_input)
@@ -178,7 +181,11 @@ class MotionVectorVisualizer(QMainWindow):
         self.tabs.addTab(self.tracking_tab, "Tracking")
 
         self.tracking_video_label = QLabel()
-        self.tracking_layout.addWidget(self.tracking_video_label)
+        self.tracking_video_label.setScaledContents(True)
+        self.tracking_scroll_area = QScrollArea()
+        self.tracking_scroll_area.setWidgetResizable(True)
+        self.tracking_scroll_area.setWidget(self.tracking_video_label)
+        self.tracking_layout.addWidget(self.tracking_scroll_area)
 
         self.load_tracking_button = QPushButton("Load Tracking Video")
         self.load_tracking_button.clicked.connect(self.load_tracking_video)
@@ -209,7 +216,11 @@ class MotionVectorVisualizer(QMainWindow):
             # Display the first frame to draw bounding box
             self.cap = cv2.VideoCapture(file_path)
             ret, frame = self.cap.read()
+            
             if ret:
+                height, width, _ = frame.shape
+                self.resize(width+(int(width*0.05)), height+(int(height*0.25))) # resize by video's width and height, but also account for external UI elements
+                self.tracking_video_label.setFixedSize(width, height)
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 self.update_tracking_frame(frame_rgb)
 
@@ -274,6 +285,15 @@ class MotionVectorVisualizer(QMainWindow):
             video_title = file_path.split("/")[-1]
             self.statusBar().showMessage(f"{video_title} was successfully loaded!")
             self.progress_bar.setValue(0)
+            
+            cap = cv2.VideoCapture(file_path)
+            ret, frame = cap.read()
+            
+            if ret:
+                height, width, _ = frame.shape
+                self.resize(width+(int(width*0.33)), height+(int(height*0.25))) # resize by video's width and height, but also account for external UI elements
+                self.video_label.setFixedSize(width, height)
+            
             if self.algorithm:
                 self.set_algorithm(self.algorithm)
 
@@ -342,5 +362,6 @@ class MotionVectorVisualizer(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     visualizer = MotionVectorVisualizer()
+    visualizer.setMinimumSize(480, 320)
     visualizer.show()
     sys.exit(app.exec_())

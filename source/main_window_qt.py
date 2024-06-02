@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, QPushButton, QWidget, QHBoxLayout,
     QGroupBox, QTabWidget, QMessageBox, QProgressBar, QLineEdit, QFormLayout
 )
-from PyQt5.QtGui import QImage, QPixmap, QPainter, QPen
-from PyQt5.QtCore import QThread, pyqtSignal, Qt, QRect
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import QThread, pyqtSignal, Qt
 from source.ebma import ebma_search
 from source.threestepsearch import tss_search
 from ROITracking import TrackingProcessor

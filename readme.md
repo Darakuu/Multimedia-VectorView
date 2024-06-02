@@ -2,7 +2,17 @@
 
 A simple python project that calculates and visualizes any kind of video's motion vectors.
 
+## Motion estimation tab
 
+![image](https://github.com/Darakuu/Multimedia-VectorView/assets/32675220/444d83f6-3a2d-48ca-a827-3c08f9bdc99b)
+
+Load up a video, choose the algorithm to be used (and optionally, change their parameters), and watch the magic happen. You can stop the video at any time.
+
+## Tracking tab
+
+![image](https://github.com/Darakuu/Multimedia-VectorView/assets/32675220/4623797c-d0a8-420e-b855-885885a9b5d1)
+
+The tracking tab is similar. Load a video, draw a bounding box over the area you wish to track, and the program will do its job.
 
 ## Implementation stages (aka makeshift todo list)
 

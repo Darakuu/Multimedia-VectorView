@@ -32,8 +32,8 @@ class VideoProcessor(QThread):
     def run(self):
         current_frame = 0
         while self.running:
-            ret, frame = self.videocapture.read()
-            if not ret:
+            frame_read, frame = self.videocapture.read()
+            if not frame_read:
                 break
 
             try:
@@ -215,9 +215,9 @@ class MotionVectorVisualizer(QMainWindow):
 
             # Display the first frame to draw bounding box
             self.cap = cv2.VideoCapture(file_path)
-            ret, frame = self.cap.read()
+            frame_read, frame = self.cap.read()
             
-            if ret:
+            if frame_read:
                 height, width, _ = frame.shape
                 self.resize(width+(int(width*0.05)), height+(int(height*0.25))) # resize by video's width and height, but also account for external UI elements
                 self.tracking_video_label.setFixedSize(width, height)
@@ -287,9 +287,9 @@ class MotionVectorVisualizer(QMainWindow):
             self.progress_bar.setValue(0)
             
             cap = cv2.VideoCapture(file_path)
-            ret, frame = cap.read()
+            frame_read, frame = cap.read()
             
-            if ret:
+            if frame_read:
                 height, width, _ = frame.shape
                 self.resize(width+(int(width*0.33)), height+(int(height*0.25))) # resize by video's width and height, but also account for external UI elements
                 self.video_label.setFixedSize(width, height)

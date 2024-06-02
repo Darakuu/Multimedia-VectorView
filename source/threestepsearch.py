@@ -13,6 +13,10 @@ def tss_search(current_frame, reference_frame, block_size=16, search_radius=8):
     Returns:
     - np.array: A 3D numpy array containing the motion vectors for each block. The third dimension contains the y and x offsets.
     """
+    # Check if frames are identical
+    if np.array_equal(current_frame, reference_frame):
+        return np.zeros((current_frame.shape[0] // block_size, current_frame.shape[1] // block_size, 2), dtype=int)
+
     height, width = current_frame.shape
     num_blocks_y = height // block_size
     num_blocks_x = width // block_size

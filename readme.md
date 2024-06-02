@@ -17,13 +17,14 @@ In no particular order:
 - [x] BB-Based Motion tracking
 - [x] EBMA alternatives
 - [ ] Documentation
+- [ ] Final Report
 
 Extra:
 
-- [ ] Anti-Jitter filter
 - [ ] FAST
 - [ ] File restructure
-- [ ] Improve code readability / better openCV2 usage
+- [x] Improve code readability
+- [ ] better openCV2 usage
 
 
 ## Instructions

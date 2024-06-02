@@ -98,7 +98,7 @@ class VideoProcessor(QThread):
         if self.videocapture.isOpened():
             self.videocapture.release()
 
-# Todo: Could be moved to its own file
+
 class MotionVectorVisualizer(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -178,6 +178,9 @@ class MotionVectorVisualizer(QMainWindow):
         self.stop_tracking_button.clicked.connect(self.stop_tracking_video)
         self.tracking_layout.addWidget(self.stop_tracking_button)
 
+        self.tracking_progress_bar = QProgressBar()
+        self.tracking_layout.addWidget(self.tracking_progress_bar)
+
         self.tracking_video_label.mousePressEvent = self.mouse_press_event_tracking
         self.tracking_video_label.mouseMoveEvent = self.mouse_move_event_tracking
         self.tracking_video_label.mouseReleaseEvent = self.mouse_release_event_tracking
@@ -191,7 +194,7 @@ class MotionVectorVisualizer(QMainWindow):
             self.video_path = file_path
             video_title = file_path.split("/")[-1]
             self.statusBar().showMessage(f"{video_title} was successfully loaded for tracking!")
-            self.progress_bar.setValue(0)
+            self.tracking_progress_bar.setValue(0)
 
             # Display the first frame to draw bounding box
             self.cap = cv2.VideoCapture(file_path)
@@ -207,7 +210,7 @@ class MotionVectorVisualizer(QMainWindow):
             self.tracking_processor = TrackingProcessor(self.video_path)
             self.tracking_processor.set_bounding_box(self.bounding_box)
             self.tracking_processor.frame_ready.connect(self.update_tracking_frame)
-            self.tracking_processor.progress_update.connect(self.update_tracking_progress)
+            self.tracking_processor.tracking_progress_updated.connect(self.update_tracking_progress)
             self.tracking_processor.start()
 
     def update_tracking_frame(self, frame):
@@ -220,16 +223,16 @@ class MotionVectorVisualizer(QMainWindow):
         except Exception as e:
             print(f"Error updating tracking frame: {e}")
 
-    def update_tracking_progress(self, progress):
-        self.progress_bar.setValue(progress)
-        self.progress_bar.setFormat(f"    Progress: {progress}%")
+    def update_tracking_progress(self, current_frame, total_frames):
+        self.tracking_progress_bar.setMaximum(total_frames)
+        self.tracking_progress_bar.setValue(current_frame)
+        self.tracking_progress_bar.setFormat(f"    Frames Processed: {current_frame} out of {total_frames} Total Frames")
 
     def stop_tracking_video(self):
         if self.tracking_processor:
             self.tracking_processor.stop()
             self.statusBar().showMessage("Tracking video stopped.")
             # Todo: Reset video's current frame to be the first frame in the video
-            self.progress_bar.setValue(0) # Todo: Actually add a progress bar
 
     def set_algorithm(self, algorithm):
         if not self.video_path:
@@ -258,7 +261,6 @@ class MotionVectorVisualizer(QMainWindow):
                     self.video_processor.stop()
                 self.video_processor = VideoProcessor(file_path, self.algorithm)
                 self.video_processor.frame_ready.connect(self.update_frame)
-                self.video_processor.progress_updated.connect(self.update_progress)
                 self.video_processor.start()
 
     def stop_video(self):
@@ -321,6 +323,8 @@ class MotionVectorVisualizer(QMainWindow):
         if self.tracking_processor:
             self.tracking_processor.stop()
         super().closeEvent(event)
+
+
 
 
 if __name__ == '__main__':

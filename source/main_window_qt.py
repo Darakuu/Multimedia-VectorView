@@ -176,6 +176,9 @@ class MotionVectorVisualizer(QMainWindow):
         form_layout.addRow("Search Radius:", self.search_radius_input)
         self.side_menu_layout.addLayout(form_layout)
 
+        self.video_exit_label = QLabel("Press ESC to close the application")
+        self.video_layout.addWidget(self.video_exit_label)
+
         self.tracking_tab = QWidget()
         self.tracking_layout = QVBoxLayout(self.tracking_tab)
         self.tabs.addTab(self.tracking_tab, "Tracking")
@@ -197,6 +200,9 @@ class MotionVectorVisualizer(QMainWindow):
 
         self.tracking_progress_bar = QProgressBar()
         self.tracking_layout.addWidget(self.tracking_progress_bar)
+
+        self.tracking_exit_label = QLabel("Press ESC to close the application")
+        self.tracking_layout.addWidget(self.tracking_exit_label)
 
         self.tracking_video_label.mousePressEvent = self.mouse_press_event_tracking
         self.tracking_video_label.mouseMoveEvent = self.mouse_move_event_tracking
@@ -351,12 +357,20 @@ class MotionVectorVisualizer(QMainWindow):
         self.progress_bar.setValue(current_frame)
         self.progress_bar.setFormat(f"    Frames Processed: {current_frame} out of {total_frames} Total Frames")
 
-    def closeEvent(self, event):
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.close_application()
+
+    def close_application(self):
         if self.video_processor:
             self.video_processor.stop()
         if self.tracking_processor:
             self.tracking_processor.stop()
-        super().closeEvent(event)
+        self.close()
+
+    def closeEvent(self, event):
+        self.close_application()
+        event.accept()
 
 
 if __name__ == '__main__':

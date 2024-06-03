@@ -15,7 +15,7 @@ class TrackingProcessor(QThread):
         self.is_running = True
         self.initial_bbox = None
         self.current_bbox = None
-        self.orb_detector = cv2.ORB_create() # Using ORB feature matching (ORiented BRIEF: uses FAST for keypoints behind the scenes)
+        self.orb_detector = cv2.ORB_create()  # Using ORB feature matching (ORiented BRIEF: uses FAST for keypoints behind the scenes)
         self.total_frame_count = int(self.videocapture.get(cv2.CAP_PROP_FRAME_COUNT))
         self.current_frame_index = 0
         self.drawn_bbox = None
@@ -91,8 +91,7 @@ class TrackingProcessor(QThread):
                 top_left = (int(self.current_bbox[0]), int(self.current_bbox[1]))
                 bottom_right = (int(self.current_bbox[0] + self.current_bbox[2]), int(self.current_bbox[1] + self.current_bbox[3]))
                 cv2.rectangle(frame, top_left, bottom_right, (255, 0, 0), 2, 1)
-                
-                frame_rgb = cv2.drawKeypoints(frame, keypoints_frame, None, color=(0, 255, 0), flags=0)
+
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 self.frame_ready.emit(frame_rgb)
         except Exception as e:

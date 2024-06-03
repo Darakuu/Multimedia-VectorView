@@ -2,6 +2,7 @@
 import numpy as np
 from PyQt5.QtCore import QThread, pyqtSignal
 
+
 class TrackingProcessor(QThread):
     frame_ready = pyqtSignal(np.ndarray)
     tracking_progress_updated = pyqtSignal(int, int)
@@ -14,7 +15,7 @@ class TrackingProcessor(QThread):
         self.is_running = True
         self.initial_bbox = None
         self.current_bbox = None
-        self.orb_detector = cv2.ORB_create()
+        self.orb_detector = cv2.ORB_create() # Using ORB feature matching (ORiented BRIEF: uses FAST for keypoints behind the scenes)
         self.total_frame_count = int(self.videocapture.get(cv2.CAP_PROP_FRAME_COUNT))
         self.current_frame_index = 0
         self.drawn_bbox = None
@@ -29,7 +30,7 @@ class TrackingProcessor(QThread):
             frame_read, frame = self.videocapture.read()
             if not frame_read or self.initial_bbox is None:
                 return
-            
+
             # Set the initial bounding box if not set
             if self.current_bbox is None:
                 self.current_bbox = self.initial_bbox
@@ -50,8 +51,9 @@ class TrackingProcessor(QThread):
                 if frame_read:
                     self.current_bbox = bbox  # Update current bounding box
                 else:
-                    # Tracker lost the target, try to reinitialize using ORB feature matching
+                    # Tracker lost the target, try to reinitialize
                     keypoints_frame, descriptors_frame = self.orb_detector.detectAndCompute(frame, None)
+
                     # Check if there are enough keypoints in the current frame
                     if descriptors_frame is not None and len(descriptors_frame) >= 2:
                         # Create a BFMatcher object using Hamming distance
@@ -89,7 +91,8 @@ class TrackingProcessor(QThread):
                 top_left = (int(self.current_bbox[0]), int(self.current_bbox[1]))
                 bottom_right = (int(self.current_bbox[0] + self.current_bbox[2]), int(self.current_bbox[1] + self.current_bbox[3]))
                 cv2.rectangle(frame, top_left, bottom_right, (255, 0, 0), 2, 1)
-
+                
+                frame_rgb = cv2.drawKeypoints(frame, keypoints_frame, None, color=(0, 255, 0), flags=0)
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 self.frame_ready.emit(frame_rgb)
         except Exception as e:
@@ -114,3 +117,12 @@ class TrackingProcessor(QThread):
 
     def draw_bounding_box(self, bbox):
         self.drawn_bbox = bbox
+
+
+""" ORB Implementation based on:
+
+    Ethan Rublee, Vincent Rabaud, Kurt Konolige, and Gary Bradski.
+    Orb: an efficient alternative to SIFT or SURF.
+    In Computer Vision (ICCV), 2011 IEEE International Conference on, pages 2564–2571. IEEE, 2011.
+
+"""

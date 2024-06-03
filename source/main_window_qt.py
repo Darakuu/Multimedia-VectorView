@@ -180,9 +180,6 @@ class MotionVectorVisualizer(QMainWindow):
         self.tss_button.clicked.connect(lambda: self.set_algorithm(tss_search))
         self.algorithm_layout.addWidget(self.tss_button)
 
-        self.fast_button = QPushButton("FAST (WIP)")
-        self.algorithm_layout.addWidget(self.fast_button)
-
         self.block_size_input = QLineEdit()
         self.search_radius_input = QLineEdit()
         self.block_size_input.setPlaceholderText("Default: 16")

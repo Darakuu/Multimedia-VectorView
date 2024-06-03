@@ -214,6 +214,10 @@ class MotionVectorVisualizer(QMainWindow):
         self.stop_tracking_button.clicked.connect(self.stop_tracking_video)
         self.tracking_layout.addWidget(self.stop_tracking_button)
 
+        self.resume_tracking_button = QPushButton("Resume Tracking Video")
+        self.resume_tracking_button.clicked.connect(self.resume_tracking_video)
+        self.tracking_layout.addWidget(self.resume_tracking_button)
+
         self.tracking_progress_bar = QProgressBar()
         self.tracking_layout.addWidget(self.tracking_progress_bar)
 
@@ -325,12 +329,12 @@ class MotionVectorVisualizer(QMainWindow):
     def stop_video(self):
         if self.video_processor:
             self.video_processor.stop()
-            self.statusBar().showMessage("Video stopped.")
+            self.statusBar().showMessage("Motion Estimation stopped.")
 
     def resume_video(self):
         if self.video_processor:
             self.video_processor.resume()
-            self.statusBar().showMessage("Video resumed.")
+            self.statusBar().showMessage("Motion Estimation resumed.")
 
     def update_frame(self, frame):
         try:
@@ -375,6 +379,11 @@ class MotionVectorVisualizer(QMainWindow):
             x2, y2 = self.end_point.x(), self.end_point.y()
             return (min(x1, x2), min(y1, y2), abs(x2 - x1), abs(y2 - y1))
         return None
+
+    def resume_tracking_video(self):
+        if self.tracking_processor:
+            self.tracking_processor.resume()
+            self.statusBar().showMessage("Tracking resumed.")
 
     def update_progress(self, current_frame, total_frames):
         self.progress_bar.setMaximum(total_frames)

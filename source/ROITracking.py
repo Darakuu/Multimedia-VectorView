@@ -17,6 +17,7 @@ class TrackingProcessor(QThread):
         self.orb_detector = cv2.ORB_create()
         self.total_frame_count = int(self.videocapture.get(cv2.CAP_PROP_FRAME_COUNT))
         self.current_frame_index = 0
+        self.drawn_bbox = None
 
     def set_bounding_box(self, bbox):
         self.initial_bbox = bbox
@@ -106,5 +107,10 @@ class TrackingProcessor(QThread):
     def resume(self):
         if not self.videocapture.isOpened():
             self.videocapture = cv2.VideoCapture(self.video_path)
+            if self.drawn_bbox:
+                self.current_bbox = self.drawn_bbox  # Update the bounding box to the drawn one
             self.is_running = True
             self.start()
+
+    def draw_bounding_box(self, bbox):
+        self.drawn_bbox = bbox

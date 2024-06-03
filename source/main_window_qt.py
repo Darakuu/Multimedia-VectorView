@@ -124,6 +124,7 @@ class MotionVectorVisualizer(QMainWindow):
         self.start_point = None
         self.end_point = None
         self.current_frame = None
+        self.tracking_started = False
 
     def initUI(self):
         self.setWindowTitle("Multimedia VectorView")
@@ -184,8 +185,8 @@ class MotionVectorVisualizer(QMainWindow):
 
         self.block_size_input = QLineEdit()
         self.search_radius_input = QLineEdit()
-        self.block_size_input.setPlaceholderText("Block Size, default: 16")
-        self.search_radius_input.setPlaceholderText("Search Radius, default: 8)")
+        self.block_size_input.setPlaceholderText("Default: 16")
+        self.search_radius_input.setPlaceholderText("Default: 8")
 
         form_layout = QFormLayout()
         form_layout.addRow("Block Size:", self.block_size_input)
@@ -206,15 +207,15 @@ class MotionVectorVisualizer(QMainWindow):
         self.tracking_scroll_area.setWidget(self.tracking_video_label)
         self.tracking_layout.addWidget(self.tracking_scroll_area)
 
-        self.load_tracking_button = QPushButton("Load Tracking Video")
+        self.load_tracking_button = QPushButton("Load Video to Track")
         self.load_tracking_button.clicked.connect(self.load_tracking_video)
         self.tracking_layout.addWidget(self.load_tracking_button)
 
-        self.stop_tracking_button = QPushButton("Stop Tracking Video")
+        self.stop_tracking_button = QPushButton("Stop Tracking")
         self.stop_tracking_button.clicked.connect(self.stop_tracking_video)
         self.tracking_layout.addWidget(self.stop_tracking_button)
 
-        self.resume_tracking_button = QPushButton("Resume Tracking Video")
+        self.resume_tracking_button = QPushButton("Start / Resume Tracking")
         self.resume_tracking_button.clicked.connect(self.resume_tracking_video)
         self.tracking_layout.addWidget(self.resume_tracking_button)
 
@@ -260,6 +261,7 @@ class MotionVectorVisualizer(QMainWindow):
             self.tracking_processor.frame_ready.connect(self.update_tracking_frame)
             self.tracking_processor.tracking_progress_updated.connect(self.update_tracking_progress)
             self.tracking_processor.start()
+            self.tracking_started = True
 
     def update_tracking_frame(self, frame):
         try:
@@ -361,7 +363,9 @@ class MotionVectorVisualizer(QMainWindow):
             self.end_point = event.pos()
             self.drawing = False
             self.bounding_box = self.get_bounding_box()
-            self.start_tracking()
+            if self.tracking_processor and not self.tracking_processor.is_running:
+                self.tracking_processor.draw_bounding_box(self.bounding_box)
+            self.redraw_tracking_frame()
 
     def redraw_tracking_frame(self):
         if self.current_frame is not None and self.start_point and self.end_point:
@@ -381,9 +385,12 @@ class MotionVectorVisualizer(QMainWindow):
         return None
 
     def resume_tracking_video(self):
-        if self.tracking_processor:
+        if not self.tracking_started:
+            self.start_tracking()
+            self.statusBar().showMessage("Tracking started.")
+        elif self.tracking_processor:
             self.tracking_processor.resume()
-            self.statusBar().showMessage("Tracking resumed.")
+        self.statusBar().showMessage("Tracking resumed.")
 
     def update_progress(self, current_frame, total_frames):
         self.progress_bar.setMaximum(total_frames)

@@ -4,15 +4,19 @@ A simple python project that calculates and visualizes any kind of video's motio
 
 ## Motion estimation tab
 
-![image](https://github.com/Darakuu/Multimedia-VectorView/assets/32675220/444d83f6-3a2d-48ca-a827-3c08f9bdc99b)
+![image](https://github.com/Darakuu/Multimedia-VectorView/assets/32675220/31b2bc68-6f34-4a6d-b324-17cb4df069dd)
 
 Load up a video, choose the algorithm to be used (and optionally, change their parameters), and watch the magic happen. You can stop the video at any time.
+Playback can be stopped / resumed.
 
 ## Tracking tab
 
-![image](https://github.com/Darakuu/Multimedia-VectorView/assets/32675220/4623797c-d0a8-420e-b855-885885a9b5d1)
+![image](https://github.com/Darakuu/Multimedia-VectorView/assets/32675220/656bd849-84c6-4b16-ba6f-b024255d3704)
 
 The tracking tab is similar. Load a video, draw a bounding box over the area you wish to track, and the program will do its job.
+You can stop the tracking to redraw the bounding box in case it loses track of the target, and then resume the playback.
+
+Press ESC to quit the application. Currently, this is the only way to load a new video.
 
 ## Implementation stages (aka makeshift todo list)
 
@@ -32,8 +36,10 @@ In no particular order:
 Extra:
 
 - [ ] FAST
+- [ ] Anti-Jitter filter (FPS or MVI)
 - [ ] File restructure
 - [x] Improve code readability
+- [ ] Add a method to reset the loaded video.
 - [ ] better openCV2 usage
 
 

@@ -4,7 +4,7 @@ A simple python project that calculates and visualizes any kind of video's motio
 
 ## Motion estimation tab
 
-![image](https://github.com/Darakuu/Multimedia-VectorView/assets/32675220/31b2bc68-6f34-4a6d-b324-17cb4df069dd)
+![image](https://github.com/Darakuu/Multimedia-VectorView/assets/32675220/6ada5b52-8cb0-4995-ab5d-29bd0f254c73)
 
 Load up a video, choose the algorithm to be used (and optionally, change their parameters), and watch the magic happen. You can stop the video at any time.
 Playback can be stopped / resumed.
@@ -35,13 +35,13 @@ In no particular order:
 
 Extra:
 
-- [ ] FAST
 - [ ] Anti-Jitter filter (FPS or MVI)
 - [ ] File restructure
 - [x] Improve code readability
 - [ ] Add a method to reset the loaded video.
 - [ ] better openCV2 usage
 
+- [ ] ~~FAST~~ - won't do, already implemented in ORB
 
 ## Instructions
 

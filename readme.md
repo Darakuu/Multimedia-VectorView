@@ -49,5 +49,10 @@ Subject to change.
 
 0. Python version used: `3.12.x`
 1. Create a .venv virtual environment and install the requirements using pip, with the constraints: `pip install -r .\requirements.txt`
-2. Install the **Standard** K-Lite codecs: [K-Lite Codecs Download](https://www.codecguide.com/download_kl.htm)
-3. Run `source/main_window.py` and you're  good to go!
+2. Run `source/main_window.py` and you're  good to go!
+
+### Troubleshooting
+
+- Optional step: Install the **Standard** K-Lite codecs: [K-Lite Codecs Download](https://www.codecguide.com/download_kl.htm)
+
+This step is only needed if you have trouble in loading or playing the video.

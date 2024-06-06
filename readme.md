@@ -4,10 +4,11 @@ A simple python project that calculates and visualizes any kind of video's motio
 
 ## Motion estimation tab
 
-![image](https://github.com/Darakuu/Multimedia-VectorView/assets/32675220/6ada5b52-8cb0-4995-ab5d-29bd0f254c73)
+![image](https://github.com/Darakuu/Multimedia-VectorView/assets/32675220/b013831a-e5be-4f9c-a763-fdf4f99dc9f4)
 
 Load up a video, choose the algorithm to be used (and optionally, change their parameters), and watch the magic happen. You can stop the video at any time.
 Playback can be stopped / resumed.
+You can also choose different similarity metrics (right now only MAD and SS, more can be added easily).
 
 ## Tracking tab
 

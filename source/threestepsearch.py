@@ -48,7 +48,7 @@ def tss_search(current_frame, reference_frame, block_size=16, search_radius=8):
                         # Check if the reference block is within frame bounds
                         if (0 <= ref_y < height - block_size + 1) and (0 <= ref_x < width - block_size + 1):
                             block_reference = reference_frame[ref_y:ref_y + block_size, ref_x:ref_x + block_size]
-                            # Calculate the sum of squared differences (SSD)
+                            # Calculate the distance between current block and reference block
                             dist = np.sum((block_current - block_reference) ** 2)
 
                             # Update minimum distance and best candidate offsets

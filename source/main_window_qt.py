@@ -4,7 +4,7 @@ import numpy as np
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QFileDialog, QLabel,
     QVBoxLayout, QPushButton, QWidget, QHBoxLayout,
-    QGroupBox, QTabWidget, QMessageBox, QProgressBar, QLineEdit, QFormLayout, QScrollArea
+    QGroupBox, QTabWidget, QMessageBox, QProgressBar, QLineEdit, QFormLayout, QScrollArea, QRadioButton, QButtonGroup
 )
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
@@ -19,7 +19,7 @@ class VideoProcessor(QThread):
     frame_ready = pyqtSignal(np.ndarray)
     progress_updated = pyqtSignal(int, int)
 
-    def __init__(self, video_path, algorithm, block_size=16, search_radius=8):
+    def __init__(self, video_path, algorithm, block_size=16, search_radius=8, similarity_metric="MAD"):
         super().__init__()
         self.video_path = video_path  # Path to the video file
         self.block_size = block_size  # Block size for motion estimation algorithms
@@ -28,6 +28,7 @@ class VideoProcessor(QThread):
         self.prev_frame = None  # Previous frame for motion estimation
         self.running = True  # Flag to stop the thread
         self.algorithm = algorithm  # The motion estimation algorithm to use
+        self.similarity_metric = similarity_metric  # The similarity metric to use (MAD or SSD)
         self.total_frames = int(
             self.videocapture.get(cv2.CAP_PROP_FRAME_COUNT))  # Total Amount of frames in the video, needed for progress
         self.current_frame_index = 0  # Current frame index for resuming playback
@@ -63,7 +64,7 @@ class VideoProcessor(QThread):
 
     def calculate_motion_vectors(self, prev_frame, curr_frame):
         try:
-            return self.algorithm(prev_frame, curr_frame, self.block_size, self.search_radius)
+            return self.algorithm(prev_frame, curr_frame, self.block_size, self.search_radius, self.similarity_metric)
         except Exception as e:
             print(f"Error in calculating motion vectors: {e}")
             return []
@@ -118,6 +119,7 @@ class MotionVectorVisualizer(QMainWindow):
         self.video_processor = None
         self.tracking_processor = None
         self.algorithm = None
+        self.similarity_metric = "MAD"
         self.video_path = None
         self.bounding_box = None
         self.drawing = False
@@ -180,6 +182,20 @@ class MotionVectorVisualizer(QMainWindow):
         self.tss_button.clicked.connect(lambda: self.set_algorithm(tss_search))
         self.algorithm_layout.addWidget(self.tss_button)
 
+        self.similarity_group_box = QGroupBox("Similarity Metric")
+        self.similarity_layout = QVBoxLayout()
+        self.similarity_group_box.setLayout(self.similarity_layout)
+        self.side_menu_layout.addWidget(self.similarity_group_box)
+
+        self.mad_radio_button = QRadioButton("Mean Absolute Difference (MAD)")
+        self.mad_radio_button.setChecked(True)
+        self.mad_radio_button.toggled.connect(self.set_similarity_metric)
+        self.similarity_layout.addWidget(self.mad_radio_button)
+
+        self.ssd_radio_button = QRadioButton("Sum of Squared Differences (SSD)")
+        self.ssd_radio_button.toggled.connect(self.set_similarity_metric)
+        self.similarity_layout.addWidget(self.ssd_radio_button)
+
         self.block_size_input = QLineEdit()
         self.search_radius_input = QLineEdit()
         self.block_size_input.setPlaceholderText("Default: 16")
@@ -225,6 +241,14 @@ class MotionVectorVisualizer(QMainWindow):
         self.tracking_video_label.mousePressEvent = self.mouse_press_event_tracking
         self.tracking_video_label.mouseMoveEvent = self.mouse_move_event_tracking
         self.tracking_video_label.mouseReleaseEvent = self.mouse_release_event_tracking
+
+    def set_similarity_metric(self):
+        if self.mad_radio_button.isChecked():
+            self.similarity_metric = "MAD"
+        elif self.ssd_radio_button.isChecked():
+            self.similarity_metric = "SSD"
+        if self.video_processor:
+            self.video_processor.similarity_metric = self.similarity_metric
 
     def load_tracking_video(self):
         options = QFileDialog.Options()
@@ -297,7 +321,7 @@ class MotionVectorVisualizer(QMainWindow):
 
         if self.video_processor:
             self.video_processor.stop()
-        self.video_processor = VideoProcessor(self.video_path, self.algorithm, block_size, search_radius)
+        self.video_processor = VideoProcessor(self.video_path, self.algorithm, block_size, search_radius, self.similarity_metric)
         self.video_processor.frame_ready.connect(self.update_frame)  # Connect to the frame_ready signal
         self.video_processor.progress_updated.connect(self.update_progress)  # Connect to the progress_updated signal
         self.video_processor.start()
